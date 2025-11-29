@@ -1,0 +1,5 @@
+{
+  "name": "ScholarDraft",
+  "description": "Sistem Penyusun Riset Ilmiah (Skripsi/Tesis) dengan generator struktur otomatis dan algoritma referensi cerdas berbasis Fakultas.",
+  "requestFramePermissions": []
+}
