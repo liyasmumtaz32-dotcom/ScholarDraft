@@ -62,11 +62,11 @@ export interface DraftData {
   chapterPages: ChapterPages;
   refCount: number;
   citationStyle: CitationStyle;
-  citationFormat: CitationFormat; // New Field
+  citationFormat: CitationFormat;
   writingStyle: WritingStyle;
   // Methodology Fields
   researchType: ResearchType;
-  statisticalFormula: string; // New Field
+  statisticalFormula: string;
   location: string;
   population: string;
   sample: string;
@@ -82,4 +82,5 @@ export interface GeneratedContent {
   chapter5: string;
   references: Reference[];
   questionnaire: string;
+  calculations: string; // New Field for Statistical Appendices
 }

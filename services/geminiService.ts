@@ -85,75 +85,61 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
 
   // Citation Format Logic
   const citationInstruction = data.citationFormat === CitationFormat.FOOT_NOTE
-    ? "GUNAKAN FORMAT FOOTNOTE/CATATAN KAKI. Di dalam teks, gunakan tanda [1], [2], dst. Jangan tulis (Author, Tahun) di teks."
+    ? "GUNAKAN FORMAT FOOTNOTE (CATATAN KAKI). Tulis detail citasi (Nama, Judul, Hal, dsb) di dalam kurung siku ganda `[[...]]` tepat setelah kalimat yang dikutip. Contoh: `Teori ini valid.[[Santoso, A. *Teori Ekonomi*. Jakarta: Gramedia, 2020, hlm. 5.]]`. JANGAN buat daftar footnote manual, sistem akan memformatnya otomatis."
     : "GUNAKAN FORMAT IN-NOTE/BODY NOTE. Di dalam teks, tulis (Author, Tahun).";
 
   const systemInstruction = `
-    Anda adalah Peneliti Senior Akademik (Post-Doctoral Level) yang sedang menulis Naskah Penelitian Final.
+    Anda adalah Peneliti Senior Akademik (Post-Doctoral Level) yang sedang menulis Naskah Penelitian Final yang SANGAT DETAIL dan PANJANG.
     
-    TUGAS UTAMA: Menyusun konten penelitian yang KREDIBEL, UNIK, dan HUMANIS (Tidak terdeteksi AI).
+    TUGAS UTAMA: Menyusun konten penelitian yang KREDIBEL, UNIK, dan MENDALAM (Minimal setara ${data.chapterPages.c2} halaman teori).
     
     INSTRUKSI FORMATTING (SANGAT PENTING):
-    1. **JANGAN GUNAKAN MARKDOWN HEADER**: Dilarang menggunakan simbol '#' atau '##' untuk judul. Tulis judul sub-bab sebagai teks biasa yang tegas.
-    2. **BERSIH DARI SIMBOL**: Dilarang menggunakan simbol markdown '**' atau '__'.
-    3. **HURUF MIRING (ITALIC)**: Untuk kata-kata bahasa asing (Inggris, Latin, Arab, dll) di dalam teks Indonesia, WAJIB diapit dengan tanda asterik tunggal (*kata asing*) atau tag <i>kata asing</i> agar sistem bisa mendeteksi italic.
-    4. **KUTIPAN PANJANG**: Jika ada kutipan langsung lebih dari 5 baris, awali dengan tanda "> " agar diformat spasi 1.
-    5. **HTML TAGS**: Gunakan <b> untuk tebal, <i> untuk miring. Gunakan <br> untuk ganti baris.
+    1. **HTML TAGS**: Gunakan <b>, <i>, <br>, <blockquote>, dan <table border="1">.
+    2. **JANGAN GUNAKAN MARKDOWN**: Dilarang menggunakan #, ##, **, __.
+    3. **ITALIC**: Kata asing (Inggris/Arab/Latin) wajib italic.
     
-    INSTRUKSI TEKNIS:
-    1. **TABEL REAL**: Jika menyajikan data, gunakan tag HTML MURNI: <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">, <tr>, <th>, dan <td>.
-    2. **ANGKET OTOMATIS**: Pada lampiran, buat tabel kuesioner rapi (HTML Table).
-    3. **SITASI**: ${citationInstruction}
+    INSTRUKSI KONTEN SPESIFIK:
+    1. **BAB 4 (HASIL & PEMBAHASAN)**: 
+       - WAJIB MENYAJIKAN TABEL HASIL PENELITIAN (HTML Table).
+       - Untuk Kuantitatif: Sajikan Tabel Deskriptif, Uji Validitas, Uji Reliabilitas, Uji Normalitas, dan Hasil Uji Hipotesis (Simulasi data yang logis).
+       - Pembahasan harus sangat mendalam, mengaitkan hasil angka dengan teori di Bab 2.
+    
+    2. **LAMPIRAN PERHITUNGAN (WAJIB)**:
+       - Selain kuesioner, buatkan bagian 'calculations' yang berisi Lampiran Output Statistik Lengkap.
+       - Isinya: Tabulasi Data Mentah (Sampel 10-20 baris), Output SPSS (R-Square, ANOVA, Coefficients), Perhitungan Rumus Manual jika perlu.
 
-    INSTRUKSI GAYA BAHASA (${data.writingStyle}):
-    - ${styleInstruction}
-    - Variasikan panjang kalimat untuk burstiness (ritme alami manusia).
+    INSTRUKSI PANJANG KONTEN:
+    - Kembangkan setiap poin pembahasan menjadi paragraf yang panjang dan deskriptif.
+    - Hindari bullet point pendek, ubah menjadi narasi paragraf yang mengalir (flow).
+    - Tambahkan "Filler Akademik" yang berbobot: definisi menurut berbagai ahli, perbandingan teori, dan argumentasi logis untuk memperpanjang halaman.
+
+    ${citationInstruction}
+    Gaya Bahasa: ${styleInstruction}
 
     KONTEKS METODOLOGI:
-    - Jenis Penelitian: ${data.researchType}
+    - Jenis: ${data.researchType}
+    - Rumus: ${data.statisticalFormula}
     - Lokasi: ${data.location}
-    - Populasi: ${data.population}
     - Sampel: ${data.sample}
-    - **RUMUS / TEKNIK ANALISIS**: Gunakan "${data.statisticalFormula}".
-    
-    Struktur Bab:
-    - **Abstrak**: Lengkap.
-    - **Bab 1**: Pendahuluan (Latar Belakang, Rumusan Masalah).
-    - **Bab 2**: Kajian Pustaka.
-    - **Bab 3**: Metodologi. Jelaskan rumus "${data.statisticalFormula}".
-    - **Bab 4**: Hasil & Pembahasan. SAJIKAN DATA & TABEL HTML.
-    - **Bab 5**: Penutup.
-    - **Lampiran**: Kuesioner (Tabel HTML).
-    
-    Output JSON valid.
   `;
 
   const prompt = `
-    JUDUL PENELITIAN: "${data.title}"
+    JUDUL: "${data.title}"
     FAKULTAS: ${data.faculty}
     NAMA: ${data.studentName}
-    UNIVERSITAS: ${data.university}
     
-    METODOLOGI:
-    - Jenis: ${data.researchType}
-    - Teknik Analisis/Rumus: ${data.statisticalFormula}
-    - Tempat: ${data.location}
-    - Populasi: ${data.population}
-    - Sampel: ${data.sample}
-
-    TARGET KEDALAMAN (Halaman per Bab):
-    - Bab 1: Target ${data.chapterPages.c1} hal
-    - Bab 2: Target ${data.chapterPages.c2} hal
-    - Bab 3: Target ${data.chapterPages.c3} hal
-    - Bab 4: Target ${data.chapterPages.c4} hal (Hitungan Detail & Tabel HTML)
-    - Bab 5: Target ${data.chapterPages.c5} hal
-
-    REFERENSI (${data.refCount} buah):
-    - Wajib menyertakan Seminal Works:
-    ${seedRefString}
-    - Sisanya generate buku/jurnal NYATA relevan.
-
-    Pastikan output adalah JSON.
+    BUAT DRAFT LENGKAP DALAM FORMAT JSON:
+    
+    1. **cover**: Teks Cover.
+    2. **abstract**: 300-500 kata, Bhs Indonesia & Inggris.
+    3. **chapter1**: (Target ${data.chapterPages.c1} hal). Latar Belakang (minimal 5 paragraf panjang), Rumusan, Tujuan, Manfaat.
+    4. **chapter2**: (Target ${data.chapterPages.c2} hal). Tinjauan Pustaka. Minimal 5 Sub-bab Teori. Setiap teori bahas mendalam dengan banyak citasi.
+    5. **chapter3**: (Target ${data.chapterPages.c3} hal). Metodologi rinci. Definisi Operasional Variabel (buat Tabel). Langkah Penelitian.
+    6. **chapter4**: (Target ${data.chapterPages.c4} hal). HASIL & PEMBAHASAN. Sertakan TABEL-TABEL HTML hasil perhitungan data (Simulasi ${data.statisticalFormula}). Interpretasi setiap tabel minimal 2 paragraf.
+    7. **chapter5**: (Target ${data.chapterPages.c5} hal). Kesimpulan & Saran.
+    8. **references**: ${data.refCount} referensi (Wajib sertakan: ${seedRefString}).
+    9. **questionnaire**: Instrumen Angket (Tabel HTML).
+    10. **calculations**: LAMPIRAN DATA & PERHITUNGAN. (Wajib Tabel HTML: Tabulasi Data Dummy, Output Uji Validitas, Reliabilitas, Uji Hipotesis sesuai rumus ${data.statisticalFormula}).
   `;
 
   try {
@@ -189,8 +175,9 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
                   }
                 },
                 questionnaire: { type: Type.STRING },
+                calculations: { type: Type.STRING, description: "HTML Table berisi simulasi output statistik (SPSS) dan tabulasi data" },
             },
-            required: ["cover", "abstract", "chapter1", "chapter2", "chapter3", "chapter4", "chapter5", "references", "questionnaire"]
+            required: ["cover", "abstract", "chapter1", "chapter2", "chapter3", "chapter4", "chapter5", "references", "questionnaire", "calculations"]
         }
       }
     });
@@ -199,7 +186,6 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
     if (!resultText) throw new Error("No response from AI");
 
     const parsedJson = JSON.parse(resultText);
-
     return parsedJson as GeneratedContent;
 
   } catch (error) {

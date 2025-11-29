@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { GeneratedContent, DraftData } from '../types';
 import { FileDown, BookMarked, AlignLeft, ScrollText, Layers, FileText } from 'lucide-react';
@@ -29,10 +30,16 @@ export const DraftPreview: React.FC<Props> = ({ content, data }) => {
 
   // Safe helper to render HTML content (allows tables) or fallback to text
   const renderContent = (htmlContent: string) => {
-    // If it looks like HTML table, render as HTML, else preserve newlines for text
-    if (htmlContent.includes('<table')) {
-      return <div className="text-sm text-slate-600 space-y-4" dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+    let processed = htmlContent;
+    
+    // Replace [[Citation]] with <sup>(Citation...)</sup> for preview visibility
+    processed = processed.replace(/\[\[(.*?)\]\]/g, '<sup class="text-blue-600 font-bold text-[10px] cursor-help" title="$1">[FN]</sup>');
+
+    // If it looks like HTML table, render as HTML
+    if (processed.includes('<table') || processed.includes('sup>')) {
+      return <div className="text-sm text-slate-600 space-y-4" dangerouslySetInnerHTML={{ __html: processed }} />;
     }
+    
     return <p className="text-sm text-slate-600 whitespace-pre-wrap">{htmlContent}</p>;
   };
 
@@ -89,7 +96,7 @@ export const DraftPreview: React.FC<Props> = ({ content, data }) => {
                <FileText className="w-3 h-3" /> Daftar Pustaka
              </button>
              <button onClick={() => downloadAppendices(data, content)} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded border border-slate-300 transition">
-               <FileText className="w-3 h-3" /> Lampiran
+               <FileText className="w-3 h-3" /> Lampiran Lengkap
              </button>
           </div>
         </div>
@@ -129,7 +136,12 @@ export const DraftPreview: React.FC<Props> = ({ content, data }) => {
             </section>
             
             <section>
-                <h2 className="text-center font-bold text-md mb-4">BAB IV: HASIL (Preview)</h2>
+                <h2 className="text-center font-bold text-md mb-4">BAB II: TINJAUAN PUSTAKA</h2>
+                {renderContent(content.chapter2)}
+            </section>
+            
+            <section>
+                <h2 className="text-center font-bold text-md mb-4">BAB IV: HASIL & PEMBAHASAN</h2>
                 {renderContent(content.chapter4)}
             </section>
 
@@ -142,6 +154,13 @@ export const DraftPreview: React.FC<Props> = ({ content, data }) => {
                         />
                     ))}
                 </ul>
+            </section>
+
+            <section>
+                <h2 className="text-center font-bold text-md mb-4">LAMPIRAN: HITUNGAN STATISTIK</h2>
+                <div className="p-4 bg-slate-50 rounded border border-slate-200">
+                    {renderContent(content.calculations)}
+                </div>
             </section>
           </div>
 
