@@ -93,31 +93,37 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
     
     TUGAS UTAMA: Menyusun konten penelitian yang KREDIBEL, UNIK, dan HUMANIS (Tidak terdeteksi AI).
     
-    INSTRUKSI TEKNIS KHUSUS (SANGAT PENTING):
-    1. **TABEL REAL**: Jika Anda menyajikan data (misal di Bab 4 atau Lampiran), JANGAN gunakan format Markdown ASCII. Gunakan tag HTML MURNI: <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">, <tr>, <th>, dan <td>.
+    INSTRUKSI FORMATTING (SANGAT PENTING):
+    1. **JANGAN GUNAKAN MARKDOWN HEADER**: Dilarang menggunakan simbol '#' atau '##' untuk judul. Tulis judul sub-bab sebagai teks biasa yang tegas.
+    2. **BERSIH DARI SIMBOL**: Dilarang menggunakan simbol markdown '**' atau '__'.
+    3. **HURUF MIRING (ITALIC)**: Untuk kata-kata bahasa asing (Inggris, Latin, Arab, dll) di dalam teks Indonesia, WAJIB diapit dengan tanda asterik tunggal (*kata asing*) atau tag <i>kata asing</i> agar sistem bisa mendeteksi italic.
+    4. **KUTIPAN PANJANG**: Jika ada kutipan langsung lebih dari 5 baris, awali dengan tanda "> " agar diformat spasi 1.
+    5. **HTML TAGS**: Gunakan <b> untuk tebal, <i> untuk miring. Gunakan <br> untuk ganti baris.
+    
+    INSTRUKSI TEKNIS:
+    1. **TABEL REAL**: Jika menyajikan data, gunakan tag HTML MURNI: <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">, <tr>, <th>, dan <td>.
     2. **ANGKET OTOMATIS**: Pada lampiran, buat tabel kuesioner rapi (HTML Table).
-    3. **ANALISIS MENDALAM**: Pada Bab 4, wajib menyertakan Tabel Analisis (statistik/tematik) sebelum pembahasan.
-    4. **SITASI**: ${citationInstruction}
+    3. **SITASI**: ${citationInstruction}
 
     INSTRUKSI GAYA BAHASA (${data.writingStyle}):
     - ${styleInstruction}
     - Variasikan panjang kalimat untuk burstiness (ritme alami manusia).
 
-    KONTEKS METODOLOGI (WAJIB DIPAKAI):
+    KONTEKS METODOLOGI:
     - Jenis Penelitian: ${data.researchType}
     - Lokasi: ${data.location}
     - Populasi: ${data.population}
     - Sampel: ${data.sample}
-    - **RUMUS / TEKNIK ANALISIS**: Gunakan "${data.statisticalFormula}" dalam pembahasan Bab 3 dan Bab 4. Tuliskan rumus matematikanya secara eksplisit jika Kuantitatif.
+    - **RUMUS / TEKNIK ANALISIS**: Gunakan "${data.statisticalFormula}".
     
     Struktur Bab:
-    - **Abstrak**: Lengkap (Latar Belakang, Tujuan, Metode, Hasil, Kesimpulan).
-    - **Bab 1**: Gap analysis jelas, rumusan masalah tajam.
-    - **Bab 2**: Elaborasi teori.
-    - **Bab 3**: Metodologi detail. Jelaskan mengapa menggunakan rumus "${data.statisticalFormula}". Sertakan definisi operasional (Tabel HTML).
-    - **Bab 4**: Hasil & Pembahasan. SAJIKAN PERHITUNGAN MENGGUNAKAN RUMUS "${data.statisticalFormula}" (jika kuantitatif). Gunakan Tabel HTML.
-    - **Bab 5**: Kesimpulan saran.
-    - **Lampiran**: Instrumen penelitian (Tabel HTML).
+    - **Abstrak**: Lengkap.
+    - **Bab 1**: Pendahuluan (Latar Belakang, Rumusan Masalah).
+    - **Bab 2**: Kajian Pustaka.
+    - **Bab 3**: Metodologi. Jelaskan rumus "${data.statisticalFormula}".
+    - **Bab 4**: Hasil & Pembahasan. SAJIKAN DATA & TABEL HTML.
+    - **Bab 5**: Penutup.
+    - **Lampiran**: Kuesioner (Tabel HTML).
     
     Output JSON valid.
   `;
@@ -138,7 +144,7 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
     TARGET KEDALAMAN (Halaman per Bab):
     - Bab 1: Target ${data.chapterPages.c1} hal
     - Bab 2: Target ${data.chapterPages.c2} hal
-    - Bab 3: Target ${data.chapterPages.c3} hal (Jelaskan Rumus ${data.statisticalFormula})
+    - Bab 3: Target ${data.chapterPages.c3} hal
     - Bab 4: Target ${data.chapterPages.c4} hal (Hitungan Detail & Tabel HTML)
     - Bab 5: Target ${data.chapterPages.c5} hal
 
