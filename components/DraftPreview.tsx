@@ -96,7 +96,7 @@ export const DraftPreview: React.FC<Props> = ({ content, data }) => {
                <FileText className="w-3 h-3" /> Daftar Pustaka
              </button>
              <button onClick={() => downloadAppendices(data, content)} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded border border-slate-300 transition">
-               <FileText className="w-3 h-3" /> Lampiran Lengkap
+               <FileText className="w-3 h-3" /> Lampiran (Instrumen & Data)
              </button>
           </div>
         </div>
@@ -154,6 +154,22 @@ export const DraftPreview: React.FC<Props> = ({ content, data }) => {
                         />
                     ))}
                 </ul>
+            </section>
+
+            <section>
+                <h2 className="text-center font-bold text-md mb-4">LAMPIRAN: KISI-KISI & TES</h2>
+                <div className="p-4 bg-slate-50 rounded border border-slate-200 mb-4">
+                    <h4 className="font-bold mb-2">Kisi-Kisi Instrumen</h4>
+                    {renderContent(content.instrumentGrid)}
+                </div>
+                <div className="p-4 bg-slate-50 rounded border border-slate-200 mb-4">
+                    <h4 className="font-bold mb-2">Soal Pre-Test</h4>
+                    {renderContent(content.preTest)}
+                </div>
+                <div className="p-4 bg-slate-50 rounded border border-slate-200 mb-4">
+                    <h4 className="font-bold mb-2">Soal Post-Test</h4>
+                    {renderContent(content.postTest)}
+                </div>
             </section>
 
             <section>

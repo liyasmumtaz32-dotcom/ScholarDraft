@@ -329,8 +329,21 @@ export const downloadReferences = (data: DraftData, references: Reference[]) => 
 export const downloadAppendices = (data: DraftData, content: GeneratedContent) => {
   const body = `
     <h1>LAMPIRAN 1: INSTRUMEN PENELITIAN</h1>
-    <h3>Kuesioner</h3>
+    <h3>A. Kuesioner / Angket</h3>
     ${proc(content.questionnaire)}
+    
+    <div class="page-break"></div>
+    <h3>B. Kisi-Kisi Instrumen (Blueprint)</h3>
+    ${proc(content.instrumentGrid)}
+
+    <div class="page-break"></div>
+    <h3>C. Soal Pre-Test</h3>
+    ${proc(content.preTest)}
+
+    <div class="page-break"></div>
+    <h3>D. Soal Post-Test</h3>
+    ${proc(content.postTest)}
+
     <div class="page-break"></div>
     <h1>LAMPIRAN 2: OUTPUT PENGOLAHAN DATA</h1>
     <h3>Hasil Analisis Statistik & Perhitungan</h3>
@@ -386,8 +399,18 @@ export const downloadFullDOC = (data: DraftData, content: GeneratedContent) => {
     ${refHTML}
 
     <div class="page-break"></div>
-    <h1>LAMPIRAN 1: KUESIONER</h1>
+    <h1>LAMPIRAN 1: INSTRUMEN & TES</h1>
+    <h3>Kisi-Kisi Instrumen</h3>
+    ${proc(content.instrumentGrid)}
+    <br/>
+    <h3>Angket</h3>
     ${proc(content.questionnaire)}
+    <br/>
+    <h3>Pre-Test</h3>
+    ${proc(content.preTest)}
+    <br/>
+    <h3>Post-Test</h3>
+    ${proc(content.postTest)}
 
     <div class="page-break"></div>
     <h1>LAMPIRAN 2: DATA & PERHITUNGAN</h1>

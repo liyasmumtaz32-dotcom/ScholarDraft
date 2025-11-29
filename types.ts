@@ -82,5 +82,9 @@ export interface GeneratedContent {
   chapter5: string;
   references: Reference[];
   questionnaire: string;
-  calculations: string; // New Field for Statistical Appendices
+  // New Fields for Instruments
+  instrumentGrid: string; // Kisi-kisi
+  preTest: string;        // Soal Pre-test
+  postTest: string;       // Soal Post-test
+  calculations: string;   // Output Statistik
 }

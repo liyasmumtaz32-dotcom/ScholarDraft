@@ -104,9 +104,10 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
        - Untuk Kuantitatif: Sajikan Tabel Deskriptif, Uji Validitas, Uji Reliabilitas, Uji Normalitas, dan Hasil Uji Hipotesis (Simulasi data yang logis).
        - Pembahasan harus sangat mendalam, mengaitkan hasil angka dengan teori di Bab 2.
     
-    2. **LAMPIRAN PERHITUNGAN (WAJIB)**:
-       - Selain kuesioner, buatkan bagian 'calculations' yang berisi Lampiran Output Statistik Lengkap.
-       - Isinya: Tabulasi Data Mentah (Sampel 10-20 baris), Output SPSS (R-Square, ANOVA, Coefficients), Perhitungan Rumus Manual jika perlu.
+    2. **LAMPIRAN (WAJIB LENGKAP)**:
+       - **Kuesioner/Angket**: Buat daftar pertanyaan.
+       - **Instrumen Tes**: Buat kisi-kisi, soal pre-test dan post-test yang relevan dengan variabel penelitian.
+       - **Calculations**: Lampiran Output Statistik Lengkap (SPSS, R-Square, Anova, dll).
 
     INSTRUKSI PANJANG KONTEN:
     - Kembangkan setiap poin pembahasan menjadi paragraf yang panjang dan deskriptif.
@@ -138,8 +139,11 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
     6. **chapter4**: (Target ${data.chapterPages.c4} hal). HASIL & PEMBAHASAN. Sertakan TABEL-TABEL HTML hasil perhitungan data (Simulasi ${data.statisticalFormula}). Interpretasi setiap tabel minimal 2 paragraf.
     7. **chapter5**: (Target ${data.chapterPages.c5} hal). Kesimpulan & Saran.
     8. **references**: ${data.refCount} referensi (Wajib sertakan: ${seedRefString}).
-    9. **questionnaire**: Instrumen Angket (Tabel HTML).
-    10. **calculations**: LAMPIRAN DATA & PERHITUNGAN. (Wajib Tabel HTML: Tabulasi Data Dummy, Output Uji Validitas, Reliabilitas, Uji Hipotesis sesuai rumus ${data.statisticalFormula}).
+    9. **questionnaire**: Instrumen Angket (Tabel HTML dengan skala likert/pilihan ganda).
+    10. **instrumentGrid**: KISI-KISI INSTRUMEN (HTML Table: Kolom Variabel, Indikator, No Item).
+    11. **preTest**: Soal Pre-Test (Minimal 10 soal essay/pilihan ganda yang mengukur kemampuan awal).
+    12. **postTest**: Soal Post-Test (Minimal 10 soal yang setara dengan pre-test untuk mengukur hasil akhir).
+    13. **calculations**: LAMPIRAN DATA & PERHITUNGAN. (Wajib Tabel HTML: Tabulasi Data Dummy, Output Uji Validitas, Reliabilitas, Uji Hipotesis sesuai rumus ${data.statisticalFormula}).
   `;
 
   try {
@@ -174,10 +178,13 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
                     required: ["type", "author", "year", "title", "city", "publisher"]
                   }
                 },
-                questionnaire: { type: Type.STRING },
+                questionnaire: { type: Type.STRING, description: "Tabel Angket Penelitian" },
+                instrumentGrid: { type: Type.STRING, description: "Tabel Kisi-kisi Instrumen (Variabel, Indikator, No Item)" },
+                preTest: { type: Type.STRING, description: "Daftar Soal Pre-test" },
+                postTest: { type: Type.STRING, description: "Daftar Soal Post-test" },
                 calculations: { type: Type.STRING, description: "HTML Table berisi simulasi output statistik (SPSS) dan tabulasi data" },
             },
-            required: ["cover", "abstract", "chapter1", "chapter2", "chapter3", "chapter4", "chapter5", "references", "questionnaire", "calculations"]
+            required: ["cover", "abstract", "chapter1", "chapter2", "chapter3", "chapter4", "chapter5", "references", "questionnaire", "instrumentGrid", "preTest", "postTest", "calculations"]
         }
       }
     });
