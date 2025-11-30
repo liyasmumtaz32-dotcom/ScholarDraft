@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Faculty, DraftData, CitationStyle, WritingStyle, ResearchType, CitationFormat, ResearchLevel, Language } from '../types';
-import { BookOpen, User, GraduationCap, FileText, Calendar, Layers, PenTool, FlaskConical, MapPin, Users, Sparkles, Calculator, Quote, CheckSquare, Library, Globe } from 'lucide-react';
+import { BookOpen, User, GraduationCap, FileText, Calendar, Layers, PenTool, FlaskConical, MapPin, Users, Sparkles, Calculator, Quote, CheckSquare, Library, Globe, UploadCloud, X, File as FileIcon } from 'lucide-react';
 import { suggestMethodology } from '../services/geminiService';
 
 interface Props {
@@ -14,6 +14,7 @@ interface Props {
 
 export const DraftForm: React.FC<Props> = ({ data, onChange, onChapterPageChange, onSubmit, isLoading }) => {
   const [isSuggesting, setIsSuggesting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAutoSuggest = async () => {
     if (!data.title) {
@@ -55,6 +56,25 @@ export const DraftForm: React.FC<Props> = ({ data, onChange, onChapterPageChange
       referencesAppendices: true
     };
     onChange('chaptersToGenerate', allSelected);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      const totalFiles = data.uploadedFiles.length + newFiles.length;
+      
+      if (totalFiles > 20) {
+        alert("Maksimal upload 20 file.");
+        return;
+      }
+      
+      onChange('uploadedFiles', [...data.uploadedFiles, ...newFiles]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    const updatedFiles = data.uploadedFiles.filter((_, i) => i !== index);
+    onChange('uploadedFiles', updatedFiles);
   };
 
   return (
@@ -269,6 +289,10 @@ export const DraftForm: React.FC<Props> = ({ data, onChange, onChapterPageChange
                     <input type="number" min="0" className="w-full p-1 border rounded text-sm" value={data.refConfig.journals} onChange={e => updateRefConfig('journals', parseInt(e.target.value)||0)} />
                 </div>
                 <div>
+                    <label className="block text-xs text-slate-500">Buku Referensi (Cetak/E-Book)</label>
+                    <input type="number" min="0" className="w-full p-1 border rounded text-sm" value={data.refConfig.books} onChange={e => updateRefConfig('books', parseInt(e.target.value)||0)} />
+                </div>
+                <div>
                     <label className="block text-xs text-slate-500">Skripsi/Tesis Repo Univ</label>
                     <input type="number" min="0" className="w-full p-1 border rounded text-sm" value={data.refConfig.repository} onChange={e => updateRefConfig('repository', parseInt(e.target.value)||0)} />
                 </div>
@@ -289,7 +313,50 @@ export const DraftForm: React.FC<Props> = ({ data, onChange, onChapterPageChange
                     <input type="number" min="0" className="w-full p-1 border rounded text-sm" value={data.refConfig.websites} onChange={e => updateRefConfig('websites', parseInt(e.target.value)||0)} />
                 </div>
             </div>
-             <div className="grid grid-cols-2 gap-4 pt-2">
+
+             {/* FILE UPLOAD SECTION */}
+            <div className="pt-2 border-t border-slate-200 mt-2">
+                <label className="block text-xs font-medium text-slate-700 mb-2 flex justify-between">
+                    <span>Upload File Referensi (Optional)</span>
+                    <span className="text-slate-400 font-normal">{data.uploadedFiles.length}/20 File</span>
+                </label>
+                
+                <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-slate-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition"
+                >
+                    <UploadCloud className="w-8 h-8 text-slate-400 mb-2" />
+                    <p className="text-xs text-center text-slate-500">
+                        Klik untuk upload PDF, Word, Gambar, TXT, MD <br/> (Max 20 file)
+                    </p>
+                    <input 
+                        ref={fileInputRef}
+                        type="file" 
+                        multiple 
+                        accept=".pdf,.doc,.docx,.txt,.md,image/*" 
+                        className="hidden" 
+                        onChange={handleFileChange}
+                    />
+                </div>
+
+                {/* Uploaded File List */}
+                {data.uploadedFiles.length > 0 && (
+                    <div className="mt-3 space-y-1 max-h-32 overflow-y-auto">
+                        {data.uploadedFiles.map((file, idx) => (
+                            <div key={idx} className="flex justify-between items-center bg-slate-100 px-2 py-1 rounded text-xs">
+                                <span className="truncate flex-1 flex items-center gap-1">
+                                    <FileIcon className="w-3 h-3 text-slate-400"/> {file.name}
+                                </span>
+                                <button onClick={() => removeFile(idx)} className="text-red-500 hover:text-red-700 ml-2">
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200">
                 <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1">Style Referensi</label>
                     <select

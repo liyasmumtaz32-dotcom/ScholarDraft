@@ -33,7 +33,8 @@ const App: React.FC = () => {
       digitalWorks: 2,
       proceedings: 2,
       reports: 1,
-      websites: 2
+      websites: 2,
+      books: 3
     },
     refYearStart: currentYear - 5, // Default last 5 years
     refYearEnd: currentYear,
@@ -47,6 +48,7 @@ const App: React.FC = () => {
       chapter5: true,
       referencesAppendices: true
     },
+    uploadedFiles: [], // Initialize empty array
     citationStyle: CitationStyle.APA,
     citationFormat: CitationFormat.IN_NOTE, 
     writingStyle: WritingStyle.AKADEMISI,

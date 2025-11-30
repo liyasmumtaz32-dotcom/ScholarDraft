@@ -73,6 +73,7 @@ export interface ReferenceCounts {
   proceedings: number;
   reports: number; // Gov/Institusi
   websites: number;
+  books: number; // New field
 }
 
 export interface ChapterSelection {
@@ -103,6 +104,9 @@ export interface DraftData {
   // New: Chapter Selection for partial generation
   chaptersToGenerate: ChapterSelection;
   
+  // New: Uploaded Files for Context
+  uploadedFiles: File[];
+
   citationStyle: CitationStyle;
   citationFormat: CitationFormat;
   writingStyle: WritingStyle;

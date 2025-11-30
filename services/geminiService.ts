@@ -27,6 +27,31 @@ const getStyleInstruction = (style: WritingStyle): string => {
   }
 };
 
+// Helper: Convert File to Base64 Part for Gemini
+const fileToPart = async (file: File) => {
+  return new Promise<any>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64Data = (reader.result as string).split(',')[1];
+      
+      // For images and PDFs, use inlineData
+      // For text-based files that Gemini might not sniff automatically or if we want to be safe,
+      // we can try sending them. 
+      // Note: Gemini API 1.5/2.0 supports PDF, Images, Audio, Video natively.
+      // Text files should ideally be read as text, but for this implementation we try standard inlineData.
+      
+      resolve({
+        inlineData: {
+          data: base64Data,
+          mimeType: file.type || 'application/octet-stream' 
+        }
+      });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 // --- NEW FUNCTION: AI AUTO-SUGGESTION FOR METHODOLOGY ---
 export const suggestMethodology = async (title: string, faculty: string) => {
   const apiKey = process.env.API_KEY;
@@ -120,6 +145,7 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
   if (chaptersToGenerate.referencesAppendices) {
     refParts.push(`8. **references**: Buat Daftar Pustaka sesuai kategori berikut:
        - Jurnal Ilmiah Open Access: ${refConfig.journals} buah
+       - Buku (Cetak/E-Book): ${refConfig.books} buah
        - Skripsi/Tesis Repository Universitas: ${refConfig.repository} buah
        - Karya Ilmiah Digital: ${refConfig.digitalWorks} buah
        - Artikel Penelitian/Prosiding Konferensi: ${refConfig.proceedings} buah
@@ -152,6 +178,7 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
     INSTRUKSI KREDIBILITAS:
     - Kembangkan paragraf yang panjang dan deskriptif untuk memenuhi target halaman.
     - Sertakan filler akademik yang berbobot.
+    - JIKA ADA FILE YANG DIUPLOAD USER: Gunakan konten di dalam file tersebut sebagai referensi utama atau konteks tambahan yang spesifik untuk bab Tinjauan Pustaka atau Hasil.
 
     ${citationInstruction}
     Gaya Bahasa: ${styleInstruction}
@@ -162,7 +189,7 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
     - Rumus: ${data.statisticalFormula}
   `;
 
-  const prompt = `
+  const promptText = `
     BUAT DRAFT FORMAT JSON.
     HANYA ISI FIELD YANG DIMINTA BERIKUT INI (Sisanya string kosong):
     
@@ -171,9 +198,18 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
   `;
 
   try {
+    // Process Uploaded Files into Parts
+    const fileParts = await Promise.all(data.uploadedFiles.map(fileToPart));
+    
+    // Construct content parts: [Prompt, ...Files]
+    const contentParts = [
+        { text: promptText },
+        ...fileParts
+    ];
+
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
+      model: 'gemini-2.5-flash', // Supports multimodal (PDF, Images)
+      contents: { parts: contentParts },
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
