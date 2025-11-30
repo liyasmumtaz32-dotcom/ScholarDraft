@@ -7,6 +7,8 @@ import { generateResearchDraft } from './services/geminiService';
 import { GraduationCap } from 'lucide-react';
 
 const App: React.FC = () => {
+  const currentYear = new Date().getFullYear();
+  
   const [formData, setFormData] = useState<DraftData>({
     title: '',
     faculty: Faculty.EKONOMI,
@@ -19,12 +21,32 @@ const App: React.FC = () => {
       c4: 20,
       c5: 5
     },
-    refCount: 5,
+    // New Reference Config Defaults
+    refConfig: {
+      journals: 5,
+      repository: 3,
+      digitalWorks: 2,
+      proceedings: 2,
+      reports: 1,
+      websites: 2
+    },
+    refYearStart: currentYear - 5, // Default last 5 years
+    refYearEnd: currentYear,
+    // New Chapter Selection Defaults (All Selected)
+    chaptersToGenerate: {
+      coverAbstract: true,
+      chapter1: true,
+      chapter2: true,
+      chapter3: true,
+      chapter4: true,
+      chapter5: true,
+      referencesAppendices: true
+    },
     citationStyle: CitationStyle.APA,
-    citationFormat: CitationFormat.IN_NOTE, // Default In-Note
+    citationFormat: CitationFormat.IN_NOTE, 
     writingStyle: WritingStyle.AKADEMISI,
     researchType: ResearchType.KUANTITATIF,
-    statisticalFormula: '', // Default empty, can be auto-filled
+    statisticalFormula: '', 
     location: '',
     population: '',
     sample: '',
@@ -34,7 +56,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper to handle nested object updates (for chapterPages)
+  // Helper to handle nested object updates
   const handleInputChange = (field: keyof DraftData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -55,9 +77,18 @@ const App: React.FC = () => {
       return;
     }
 
+    // Check if at least one chapter is selected
+    const isAnyChapterSelected = Object.values(formData.chaptersToGenerate).some(val => val);
+    if (!isAnyChapterSelected) {
+      alert("Mohon pilih minimal satu bagian/bab untuk dibuat.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
+      // NOTE: In a real app with partial updates, we might want to merge `content` with `generatedContent`
+      // For now, we replace it to reflect exactly what the AI generated this session.
       const content = await generateResearchDraft(formData);
       setGeneratedContent(content);
     } catch (err: any) {
@@ -111,16 +142,6 @@ const App: React.FC = () => {
               onSubmit={handleGenerate}
               isLoading={isLoading}
             />
-            
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-              <h4 className="font-bold text-blue-800 text-sm mb-2">Panduan Penggunaan:</h4>
-              <ul className="text-xs text-blue-700 space-y-2 list-disc pl-4">
-                <li>Gunakan <b>Auto-Lengkapi</b> untuk saran Rumus Statistik & Jenis Penelitian.</li>
-                <li>Pilih <b>Bentuk Citasi</b> (Footnote/Body Note) sesuai pedoman kampus.</li>
-                <li>Sistem akan menyertakan perhitungan rumus di Bab 4 jika relevan.</li>
-                <li>Target halaman mempengaruhi detail output pembahasan.</li>
-              </ul>
-            </div>
           </div>
 
           {/* Right Column: Preview */}

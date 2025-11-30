@@ -54,13 +54,38 @@ export interface ChapterPages {
   c5: number;
 }
 
+export interface ReferenceCounts {
+  journals: number;
+  repository: number; // Skripsi/Tesis
+  digitalWorks: number;
+  proceedings: number;
+  reports: number; // Gov/Institusi
+  websites: number;
+}
+
+export interface ChapterSelection {
+  coverAbstract: boolean;
+  chapter1: boolean;
+  chapter2: boolean;
+  chapter3: boolean;
+  chapter4: boolean;
+  chapter5: boolean;
+  referencesAppendices: boolean;
+}
+
 export interface DraftData {
   title: string;
   faculty: Faculty;
   studentName: string;
   university: string;
   chapterPages: ChapterPages;
-  refCount: number;
+  // Replaced simple refCount with detailed config
+  refConfig: ReferenceCounts;
+  refYearStart: number;
+  refYearEnd: number;
+  // New: Chapter Selection for partial generation
+  chaptersToGenerate: ChapterSelection;
+  
   citationStyle: CitationStyle;
   citationFormat: CitationFormat;
   writingStyle: WritingStyle;

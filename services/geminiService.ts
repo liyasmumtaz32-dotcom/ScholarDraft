@@ -88,62 +88,66 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
     ? "GUNAKAN FORMAT FOOTNOTE (CATATAN KAKI). Tulis detail citasi (Nama, Judul, Hal, dsb) di dalam kurung siku ganda `[[...]]` tepat setelah kalimat yang dikutip. Contoh: `Teori ini valid.[[Santoso, A. *Teori Ekonomi*. Jakarta: Gramedia, 2020, hlm. 5.]]`. JANGAN buat daftar footnote manual, sistem akan memformatnya otomatis."
     : "GUNAKAN FORMAT IN-NOTE/BODY NOTE. Di dalam teks, tulis (Author, Tahun).";
 
+  // Check which chapters to generate
+  const { chaptersToGenerate, refConfig } = data;
+  
+  const chapterPromptParts = [];
+  if (chaptersToGenerate.coverAbstract) chapterPromptParts.push("1. **cover**: Teks Cover.\n2. **abstract**: 300-500 kata, Bhs Indonesia & Inggris.");
+  if (chaptersToGenerate.chapter1) chapterPromptParts.push(`3. **chapter1**: (Target ${data.chapterPages.c1} hal). Latar Belakang (minimal 5 paragraf panjang), Rumusan, Tujuan, Manfaat.`);
+  if (chaptersToGenerate.chapter2) chapterPromptParts.push(`4. **chapter2**: (Target ${data.chapterPages.c2} hal). Tinjauan Pustaka. Minimal 5 Sub-bab Teori. Setiap teori bahas mendalam dengan banyak citasi.`);
+  if (chaptersToGenerate.chapter3) chapterPromptParts.push(`5. **chapter3**: (Target ${data.chapterPages.c3} hal). Metodologi rinci. Definisi Operasional Variabel (buat Tabel). Langkah Penelitian.`);
+  if (chaptersToGenerate.chapter4) chapterPromptParts.push(`6. **chapter4**: (Target ${data.chapterPages.c4} hal). HASIL & PEMBAHASAN. Sertakan TABEL-TABEL HTML hasil perhitungan data (Simulasi ${data.statisticalFormula}). Interpretasi setiap tabel minimal 2 paragraf.`);
+  if (chaptersToGenerate.chapter5) chapterPromptParts.push(`7. **chapter5**: (Target ${data.chapterPages.c5} hal). Kesimpulan & Saran.`);
+  
+  const refParts = [];
+  if (chaptersToGenerate.referencesAppendices) {
+    refParts.push(`8. **references**: Buat Daftar Pustaka sesuai kategori berikut:
+       - Jurnal Ilmiah Open Access: ${refConfig.journals} buah
+       - Skripsi/Tesis Repository Universitas: ${refConfig.repository} buah
+       - Karya Ilmiah Digital: ${refConfig.digitalWorks} buah
+       - Prosiding Konferensi: ${refConfig.proceedings} buah
+       - Laporan Pemerintah/Lembaga: ${refConfig.reports} buah
+       - Website Resmi: ${refConfig.websites} buah
+       * FILTER TAHUN: Referensi harus terbit antara TAHUN ${data.refYearStart} sampai ${data.refYearEnd}.
+       * Tambahkan seminal works berikut: ${seedRefString}
+    `);
+    refParts.push(`9. **questionnaire**: Instrumen Angket (Tabel HTML).`);
+    refParts.push(`10. **instrumentGrid**: KISI-KISI INSTRUMEN (HTML Table).`);
+    refParts.push(`11. **preTest**: Soal Pre-Test.`);
+    refParts.push(`12. **postTest**: Soal Post-Test.`);
+    refParts.push(`13. **calculations**: LAMPIRAN DATA & PERHITUNGAN (Tabel HTML).`);
+  }
+
   const systemInstruction = `
-    Anda adalah Peneliti Senior Akademik (Post-Doctoral Level) yang sedang menulis Naskah Penelitian Final yang SANGAT DETAIL dan PANJANG.
+    Anda adalah Peneliti Senior Akademik (Post-Doctoral Level) yang sedang menulis Naskah Penelitian.
     
-    TUGAS UTAMA: Menyusun konten penelitian yang KREDIBEL, UNIK, dan MENDALAM (Minimal setara ${data.chapterPages.c2} halaman teori).
+    TUGAS UTAMA: Menyusun konten penelitian berdasarkan 'Checklist' yang diminta user.
+    BAGIAN YANG TIDAK DIMINTA: Kembalikan string kosong ("").
     
-    INSTRUKSI FORMATTING (SANGAT PENTING):
+    INSTRUKSI FORMATTING:
     1. **HTML TAGS**: Gunakan <b>, <i>, <br>, <blockquote>, dan <table border="1">.
     2. **JANGAN GUNAKAN MARKDOWN**: Dilarang menggunakan #, ##, **, __.
-    3. **ITALIC**: Kata asing (Inggris/Arab/Latin) wajib italic.
+    3. **ITALIC**: Kata asing wajib italic.
     
-    INSTRUKSI KONTEN SPESIFIK:
-    1. **BAB 4 (HASIL & PEMBAHASAN)**: 
-       - WAJIB MENYAJIKAN TABEL HASIL PENELITIAN (HTML Table).
-       - Untuk Kuantitatif: Sajikan Tabel Deskriptif, Uji Validitas, Uji Reliabilitas, Uji Normalitas, dan Hasil Uji Hipotesis (Simulasi data yang logis).
-       - Pembahasan harus sangat mendalam, mengaitkan hasil angka dengan teori di Bab 2.
-    
-    2. **LAMPIRAN (WAJIB LENGKAP)**:
-       - **Kuesioner/Angket**: Buat daftar pertanyaan.
-       - **Instrumen Tes**: Buat kisi-kisi, soal pre-test dan post-test yang relevan dengan variabel penelitian.
-       - **Calculations**: Lampiran Output Statistik Lengkap (SPSS, R-Square, Anova, dll).
-
-    INSTRUKSI PANJANG KONTEN:
-    - Kembangkan setiap poin pembahasan menjadi paragraf yang panjang dan deskriptif.
-    - Hindari bullet point pendek, ubah menjadi narasi paragraf yang mengalir (flow).
-    - Tambahkan "Filler Akademik" yang berbobot: definisi menurut berbagai ahli, perbandingan teori, dan argumentasi logis untuk memperpanjang halaman.
+    INSTRUKSI KREDIBILITAS:
+    - Kembangkan paragraf yang panjang dan deskriptif untuk memenuhi target halaman.
+    - Sertakan filler akademik yang berbobot.
 
     ${citationInstruction}
     Gaya Bahasa: ${styleInstruction}
 
-    KONTEKS METODOLOGI:
+    KONTEKS:
+    - Judul: ${data.title}
     - Jenis: ${data.researchType}
     - Rumus: ${data.statisticalFormula}
-    - Lokasi: ${data.location}
-    - Sampel: ${data.sample}
   `;
 
   const prompt = `
-    JUDUL: "${data.title}"
-    FAKULTAS: ${data.faculty}
-    NAMA: ${data.studentName}
+    BUAT DRAFT FORMAT JSON.
+    HANYA ISI FIELD YANG DIMINTA BERIKUT INI (Sisanya string kosong):
     
-    BUAT DRAFT LENGKAP DALAM FORMAT JSON:
-    
-    1. **cover**: Teks Cover.
-    2. **abstract**: 300-500 kata, Bhs Indonesia & Inggris.
-    3. **chapter1**: (Target ${data.chapterPages.c1} hal). Latar Belakang (minimal 5 paragraf panjang), Rumusan, Tujuan, Manfaat.
-    4. **chapter2**: (Target ${data.chapterPages.c2} hal). Tinjauan Pustaka. Minimal 5 Sub-bab Teori. Setiap teori bahas mendalam dengan banyak citasi.
-    5. **chapter3**: (Target ${data.chapterPages.c3} hal). Metodologi rinci. Definisi Operasional Variabel (buat Tabel). Langkah Penelitian.
-    6. **chapter4**: (Target ${data.chapterPages.c4} hal). HASIL & PEMBAHASAN. Sertakan TABEL-TABEL HTML hasil perhitungan data (Simulasi ${data.statisticalFormula}). Interpretasi setiap tabel minimal 2 paragraf.
-    7. **chapter5**: (Target ${data.chapterPages.c5} hal). Kesimpulan & Saran.
-    8. **references**: ${data.refCount} referensi (Wajib sertakan: ${seedRefString}).
-    9. **questionnaire**: Instrumen Angket (Tabel HTML dengan skala likert/pilihan ganda).
-    10. **instrumentGrid**: KISI-KISI INSTRUMEN (HTML Table: Kolom Variabel, Indikator, No Item).
-    11. **preTest**: Soal Pre-Test (Minimal 10 soal essay/pilihan ganda yang mengukur kemampuan awal).
-    12. **postTest**: Soal Post-Test (Minimal 10 soal yang setara dengan pre-test untuk mengukur hasil akhir).
-    13. **calculations**: LAMPIRAN DATA & PERHITUNGAN. (Wajib Tabel HTML: Tabulasi Data Dummy, Output Uji Validitas, Reliabilitas, Uji Hipotesis sesuai rumus ${data.statisticalFormula}).
+    ${chapterPromptParts.join('\n')}
+    ${refParts.join('\n')}
   `;
 
   try {
@@ -168,7 +172,7 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
                   items: {
                     type: Type.OBJECT,
                     properties: {
-                      type: { type: Type.STRING, enum: ["BOOK", "JOURNAL"] },
+                      type: { type: Type.STRING, enum: ["BOOK", "JOURNAL", "THESIS", "PROCEEDING", "REPORT", "WEBSITE"] },
                       author: { type: Type.STRING },
                       year: { type: Type.STRING },
                       title: { type: Type.STRING },
@@ -179,10 +183,10 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
                   }
                 },
                 questionnaire: { type: Type.STRING, description: "Tabel Angket Penelitian" },
-                instrumentGrid: { type: Type.STRING, description: "Tabel Kisi-kisi Instrumen (Variabel, Indikator, No Item)" },
+                instrumentGrid: { type: Type.STRING, description: "Tabel Kisi-kisi Instrumen" },
                 preTest: { type: Type.STRING, description: "Daftar Soal Pre-test" },
                 postTest: { type: Type.STRING, description: "Daftar Soal Post-test" },
-                calculations: { type: Type.STRING, description: "HTML Table berisi simulasi output statistik (SPSS) dan tabulasi data" },
+                calculations: { type: Type.STRING, description: "HTML Table simulasi statistik" },
             },
             required: ["cover", "abstract", "chapter1", "chapter2", "chapter3", "chapter4", "chapter5", "references", "questionnaire", "instrumentGrid", "preTest", "postTest", "calculations"]
         }
