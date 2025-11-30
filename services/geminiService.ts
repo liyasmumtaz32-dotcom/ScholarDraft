@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { DraftData, GeneratedContent, Reference, Faculty, WritingStyle, ResearchType, CitationFormat } from '../types';
+import { DraftData, GeneratedContent, Reference, Faculty, WritingStyle, ResearchType, CitationFormat, ResearchLevel, Language } from '../types';
 import { SEMINAL_WORKS_DB, GENERIC_REFS } from '../constants';
 
 // Helper to get seed references (mandatory base)
@@ -87,12 +87,29 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
   const citationInstruction = data.citationFormat === CitationFormat.FOOT_NOTE
     ? "GUNAKAN FORMAT FOOTNOTE (CATATAN KAKI). Tulis detail citasi (Nama, Judul, Hal, dsb) di dalam kurung siku ganda `[[...]]` tepat setelah kalimat yang dikutip. Contoh: `Teori ini valid.[[Santoso, A. *Teori Ekonomi*. Jakarta: Gramedia, 2020, hlm. 5.]]`. JANGAN buat daftar footnote manual, sistem akan memformatnya otomatis."
     : "GUNAKAN FORMAT IN-NOTE/BODY NOTE. Di dalam teks, tulis (Author, Tahun).";
+    
+  // Language Instruction
+  const langInstruction = data.language === Language.ARAB
+    ? "OUTPUT WAJIB DALAM BAHASA ARAB (FUSHA/MODERN STANDARD ARABIC). Gunakan istilah akademik Arab yang tepat. Pastikan alur teks logis untuk Right-to-Left (RTL)."
+    : data.language === Language.INGGRIS
+      ? "OUTPUT MUST BE IN ENGLISH (Academic English)."
+      : "OUTPUT WAJIB DALAM BAHASA INDONESIA YANG BAIK DAN BENAR (Ejaan Baku).";
+
+  // Level Instruction
+  let levelInstruction = "";
+  if (data.researchLevel === ResearchLevel.DISERTASI) {
+      levelInstruction = "INI ADALAH DISERTASI (S3). Kualitas harus SANGAT TINGGI, ANALISIS MENDALAM, mengandung NOVELTY (Kebaruan) yang eksplisit, dan Kritikal terhadap teori yang ada.";
+  } else if (data.researchLevel === ResearchLevel.TESIS) {
+      levelInstruction = "INI ADALAH TESIS (S2). Analisis harus lebih dalam dari Skripsi, sintesa teori harus kuat.";
+  } else {
+      levelInstruction = "INI ADALAH SKRIPSI (S1). Standar akademik sarjana.";
+  }
 
   // Check which chapters to generate
   const { chaptersToGenerate, refConfig } = data;
   
   const chapterPromptParts = [];
-  if (chaptersToGenerate.coverAbstract) chapterPromptParts.push("1. **cover**: Teks Cover.\n2. **abstract**: 300-500 kata, Bhs Indonesia & Inggris.");
+  if (chaptersToGenerate.coverAbstract) chapterPromptParts.push("1. **cover**: Teks Cover.\n2. **abstract**: 300-500 kata.");
   if (chaptersToGenerate.chapter1) chapterPromptParts.push(`3. **chapter1**: (Target ${data.chapterPages.c1} hal). Latar Belakang (minimal 5 paragraf panjang), Rumusan, Tujuan, Manfaat.`);
   if (chaptersToGenerate.chapter2) chapterPromptParts.push(`4. **chapter2**: (Target ${data.chapterPages.c2} hal). Tinjauan Pustaka. Minimal 5 Sub-bab Teori. Setiap teori bahas mendalam dengan banyak citasi.`);
   if (chaptersToGenerate.chapter3) chapterPromptParts.push(`5. **chapter3**: (Target ${data.chapterPages.c3} hal). Metodologi rinci. Definisi Operasional Variabel (buat Tabel). Langkah Penelitian.`);
@@ -105,8 +122,8 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
        - Jurnal Ilmiah Open Access: ${refConfig.journals} buah
        - Skripsi/Tesis Repository Universitas: ${refConfig.repository} buah
        - Karya Ilmiah Digital: ${refConfig.digitalWorks} buah
-       - Prosiding Konferensi: ${refConfig.proceedings} buah
-       - Laporan Pemerintah/Lembaga: ${refConfig.reports} buah
+       - Artikel Penelitian/Prosiding Konferensi: ${refConfig.proceedings} buah
+       - Laporan Penelitian Pemerintah/Lembaga: ${refConfig.reports} buah
        - Website Resmi: ${refConfig.websites} buah
        * FILTER TAHUN: Referensi harus terbit antara TAHUN ${data.refYearStart} sampai ${data.refYearEnd}.
        * Tambahkan seminal works berikut: ${seedRefString}
@@ -119,7 +136,10 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
   }
 
   const systemInstruction = `
-    Anda adalah Peneliti Senior Akademik (Post-Doctoral Level) yang sedang menulis Naskah Penelitian.
+    Anda adalah Peneliti Senior Akademik (Post-Doctoral Level).
+    
+    ${langInstruction}
+    ${levelInstruction}
     
     TUGAS UTAMA: Menyusun konten penelitian berdasarkan 'Checklist' yang diminta user.
     BAGIAN YANG TIDAK DIMINTA: Kembalikan string kosong ("").
@@ -127,7 +147,7 @@ export const generateResearchDraft = async (data: DraftData): Promise<GeneratedC
     INSTRUKSI FORMATTING:
     1. **HTML TAGS**: Gunakan <b>, <i>, <br>, <blockquote>, dan <table border="1">.
     2. **JANGAN GUNAKAN MARKDOWN**: Dilarang menggunakan #, ##, **, __.
-    3. **ITALIC**: Kata asing wajib italic.
+    3. **ITALIC**: Kata asing (non-bahasa utama) wajib italic.
     
     INSTRUKSI KREDIBILITAS:
     - Kembangkan paragraf yang panjang dan deskriptif untuk memenuhi target halaman.

@@ -1,5 +1,5 @@
 
-import { GeneratedContent, Reference, DraftData, CitationStyle } from '../types';
+import { GeneratedContent, Reference, DraftData, CitationStyle, Language } from '../types';
 
 export const getFormattedReference = (ref: Reference, style: CitationStyle): string => {
   switch (style) {
@@ -68,7 +68,7 @@ const cleanMarkdown = (text: string): string => {
 };
 
 // Internal Helper for Styling
-const getDocStyles = () => `
+const getDocStyles = (isRtl: boolean = false) => `
   <style>
     @page {
         size: A4;
@@ -88,6 +88,7 @@ const getDocStyles = () => `
         line-height: 200%; /* Double Spacing (2 Spasi) */
         text-align: justify; /* Justify Alignment */
         color: #000; 
+        direction: ${isRtl ? 'rtl' : 'ltr'};
     }
     
     /* Headings */
@@ -192,7 +193,7 @@ const processFootnotes = (html: string) => {
   return { processedHtml, footnotesHtml };
 };
 
-const wrapHTML = (bodyContent: string, footnotesContent: string = '') => `
+const wrapHTML = (bodyContent: string, isRtl: boolean, footnotesContent: string = '') => `
   <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
   <head>
     <meta charset='utf-8'>
@@ -202,9 +203,9 @@ const wrapHTML = (bodyContent: string, footnotesContent: string = '') => `
             <w:Zoom>100</w:Zoom>
         </w:WordDocument>
     </xml>
-    ${getDocStyles()}
+    ${getDocStyles(isRtl)}
   </head>
-  <body>
+  <body ${isRtl ? 'dir="rtl"' : ''}>
     <div class="Section1">
       ${bodyContent}
       <div style='mso-element:footer' id=f1>
@@ -218,8 +219,8 @@ const wrapHTML = (bodyContent: string, footnotesContent: string = '') => `
   </html>
 `;
 
-const downloadHTMLAsDoc = (htmlContent: string, filename: string, footnotesContent: string = '') => {
-  const fullHTML = wrapHTML(htmlContent, footnotesContent);
+const downloadHTMLAsDoc = (htmlContent: string, filename: string, isRtl: boolean = false, footnotesContent: string = '') => {
+  const fullHTML = wrapHTML(htmlContent, isRtl, footnotesContent);
   const blob = new Blob(['\ufeff', fullHTML], {
       type: 'application/msword'
   });
@@ -289,44 +290,48 @@ const proc = (txt: string) => {
 };
 
 export const downloadCover = (data: DraftData, content: GeneratedContent) => {
+  const isRtl = data.language === Language.ARAB;
   const { processedHtml, footnotesHtml } = processFootnotes(proc(content.abstract));
   
   const body = `
     <div class="cover">
       <div class="cover-title">${data.title}</div>
-      <div style="margin-top: 24pt;">PROPOSAL PENELITIAN</div>
-      <div class="cover-name">Oleh:<br/>${data.studentName}</div>
+      <div style="margin-top: 24pt;">PROPOSAL ${data.researchLevel.split(' ')[0].toUpperCase()}</div>
+      <div class="cover-name">${isRtl ? 'إعداد' : 'Oleh'}:<br/>${data.studentName}</div>
       <div class="cover-inst">${data.faculty.toUpperCase()}<br/>${data.university.toUpperCase()}<br/>${new Date().getFullYear()}</div>
     </div>
     <div class="page-break"></div>
-    <h1>ABSTRAK</h1>
+    <h1>${isRtl ? 'الملخص' : 'ABSTRAK'}</h1>
     ${processedHtml}
   `;
-  downloadHTMLAsDoc(body, `Cover_Abstrak_${data.studentName}.doc`, footnotesHtml);
+  downloadHTMLAsDoc(body, `Cover_Abstrak_${data.studentName}.doc`, isRtl, footnotesHtml);
 };
 
 export const downloadChapter = (data: DraftData, chapterTitle: string, content: string, chapterNum: number) => {
+  const isRtl = data.language === Language.ARAB;
   const { processedHtml, footnotesHtml } = processFootnotes(proc(content));
   const body = `
     <h1>BAB ${chapterNum}<br/>${chapterTitle.toUpperCase()}</h1>
     ${processedHtml}
   `;
-  downloadHTMLAsDoc(body, `Bab_${chapterNum}_${data.studentName}.doc`, footnotesHtml);
+  downloadHTMLAsDoc(body, `Bab_${chapterNum}_${data.studentName}.doc`, isRtl, footnotesHtml);
 };
 
 export const downloadReferences = (data: DraftData, references: Reference[]) => {
+  const isRtl = data.language === Language.ARAB;
   const refHTML = references.map(r => 
     `<div class="ref-item">${getFormattedReference(r, data.citationStyle)}</div>`
   ).join('');
   
   const body = `
-    <h1>DAFTAR PUSTAKA</h1>
+    <h1>${isRtl ? 'المراجع' : 'DAFTAR PUSTAKA'}</h1>
     ${refHTML}
   `;
-  downloadHTMLAsDoc(body, `Daftar_Pustaka_${data.studentName}.doc`);
+  downloadHTMLAsDoc(body, `Daftar_Pustaka_${data.studentName}.doc`, isRtl);
 };
 
 export const downloadAppendices = (data: DraftData, content: GeneratedContent) => {
+  const isRtl = data.language === Language.ARAB;
   const body = `
     <h1>LAMPIRAN 1: INSTRUMEN PENELITIAN</h1>
     <h3>A. Kuesioner / Angket</h3>
@@ -349,10 +354,11 @@ export const downloadAppendices = (data: DraftData, content: GeneratedContent) =
     <h3>Hasil Analisis Statistik & Perhitungan</h3>
     ${proc(content.calculations)}
   `;
-  downloadHTMLAsDoc(body, `Lampiran_${data.studentName}.doc`);
+  downloadHTMLAsDoc(body, `Lampiran_${data.studentName}.doc`, isRtl);
 };
 
 export const downloadFullDOC = (data: DraftData, content: GeneratedContent) => {
+  const isRtl = data.language === Language.ARAB;
   const refHTML = content.references.map(r => 
     `<div class="ref-item">${getFormattedReference(r, data.citationStyle)}</div>`
   ).join('');
@@ -362,13 +368,13 @@ export const downloadFullDOC = (data: DraftData, content: GeneratedContent) => {
   const rawBody = `
     <div class="cover">
       <div class="cover-title">${data.title}</div>
-      <div style="margin-top: 24pt;">PROPOSAL PENELITIAN</div>
-      <div class="cover-name">Oleh:<br/>${data.studentName}</div>
+      <div style="margin-top: 24pt;">PROPOSAL ${data.researchLevel.split(' ')[0].toUpperCase()}</div>
+      <div class="cover-name">${isRtl ? 'إعداد' : 'Oleh'}:<br/>${data.studentName}</div>
       <div class="cover-inst">${data.faculty.toUpperCase()}<br/>${data.university.toUpperCase()}<br/>${new Date().getFullYear()}</div>
     </div>
 
     <div class="page-break"></div>
-    <h1>ABSTRAK</h1>
+    <h1>${isRtl ? 'الملخص' : 'ABSTRAK'}</h1>
     ${proc(content.abstract)}
 
     <div class="page-break"></div>
@@ -395,7 +401,7 @@ export const downloadFullDOC = (data: DraftData, content: GeneratedContent) => {
     ${proc(content.chapter5)}
 
     <div class="page-break"></div>
-    <h1>DAFTAR PUSTAKA</h1>
+    <h1>${isRtl ? 'المراجع' : 'DAFTAR PUSTAKA'}</h1>
     ${refHTML}
 
     <div class="page-break"></div>
@@ -419,5 +425,5 @@ export const downloadFullDOC = (data: DraftData, content: GeneratedContent) => {
 
   const { processedHtml, footnotesHtml } = processFootnotes(rawBody);
 
-  downloadHTMLAsDoc(processedHtml, `Full_Draft_${data.studentName.replace(/\s+/g, '_')}.doc`, footnotesHtml);
+  downloadHTMLAsDoc(processedHtml, `Full_Draft_${data.studentName.replace(/\s+/g, '_')}.doc`, isRtl, footnotesHtml);
 };

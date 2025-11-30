@@ -37,6 +37,18 @@ export enum ResearchType {
   CAMPURAN = 'Campuran (Mix Method)'
 }
 
+export enum ResearchLevel {
+  SKRIPSI = 'Skripsi (S1 - Undergraduate)',
+  TESIS = 'Tesis (S2 - Masters)',
+  DISERTASI = 'Disertasi (S3 - PhD)'
+}
+
+export enum Language {
+  INDONESIA = 'Bahasa Indonesia',
+  INGGRIS = 'English',
+  ARAB = 'Bahasa Arab (Arabic)'
+}
+
 export interface Reference {
   type: string;
   author: string;
@@ -78,6 +90,11 @@ export interface DraftData {
   faculty: Faculty;
   studentName: string;
   university: string;
+  
+  // New Fields
+  researchLevel: ResearchLevel;
+  language: Language;
+
   chapterPages: ChapterPages;
   // Replaced simple refCount with detailed config
   refConfig: ReferenceCounts;

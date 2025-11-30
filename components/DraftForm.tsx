@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { Faculty, DraftData, CitationStyle, WritingStyle, ResearchType, CitationFormat } from '../types';
-import { BookOpen, User, GraduationCap, FileText, Calendar, Layers, PenTool, FlaskConical, MapPin, Users, Sparkles, Calculator, Quote, CheckSquare, Library } from 'lucide-react';
+import { Faculty, DraftData, CitationStyle, WritingStyle, ResearchType, CitationFormat, ResearchLevel, Language } from '../types';
+import { BookOpen, User, GraduationCap, FileText, Calendar, Layers, PenTool, FlaskConical, MapPin, Users, Sparkles, Calculator, Quote, CheckSquare, Library, Globe } from 'lucide-react';
 import { suggestMethodology } from '../services/geminiService';
 
 interface Props {
@@ -68,11 +68,44 @@ export const DraftForm: React.FC<Props> = ({ data, onChange, onChapterPageChange
         {/* SECTION 1: IDENTITAS */}
         <div className="space-y-4">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b pb-1">Identitas Riset</h3>
+            
+            {/* New: Level & Language */}
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                   <label className="block text-sm font-medium text-slate-700 mb-1">Jenjang/Level</label>
+                   <select
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm"
+                        value={data.researchLevel}
+                        onChange={(e) => onChange('researchLevel', e.target.value as ResearchLevel)}
+                   >
+                        {Object.values(ResearchLevel).map((lvl) => (
+                            <option key={lvl} value={lvl}>{lvl}</option>
+                        ))}
+                   </select>
+                </div>
+                <div>
+                   <label className="block text-sm font-medium text-slate-700 mb-1">Bahasa</label>
+                   <div className="relative">
+                        <select
+                            className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm"
+                            value={data.language}
+                            onChange={(e) => onChange('language', e.target.value as Language)}
+                        >
+                            {Object.values(Language).map((lang) => (
+                                <option key={lang} value={lang}>{lang}</option>
+                            ))}
+                        </select>
+                        <Globe className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                   </div>
+                </div>
+            </div>
+
             <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Judul Penelitian</label>
             <div className="relative">
                 <input
                 type="text"
+                dir={data.language === Language.ARAB ? "rtl" : "ltr"}
                 className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
                 placeholder="Judul Lengkap..."
                 value={data.title}
@@ -232,11 +265,11 @@ export const DraftForm: React.FC<Props> = ({ data, onChange, onChapterPageChange
             {/* Categories */}
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                 <div>
-                    <label className="block text-xs text-slate-500">Jurnal Open Access</label>
+                    <label className="block text-xs text-slate-500">Jurnal Ilmiah Open Access</label>
                     <input type="number" min="0" className="w-full p-1 border rounded text-sm" value={data.refConfig.journals} onChange={e => updateRefConfig('journals', parseInt(e.target.value)||0)} />
                 </div>
                 <div>
-                    <label className="block text-xs text-slate-500">Skripsi/Tesis Repo</label>
+                    <label className="block text-xs text-slate-500">Skripsi/Tesis Repo Univ</label>
                     <input type="number" min="0" className="w-full p-1 border rounded text-sm" value={data.refConfig.repository} onChange={e => updateRefConfig('repository', parseInt(e.target.value)||0)} />
                 </div>
                 <div>
@@ -244,15 +277,15 @@ export const DraftForm: React.FC<Props> = ({ data, onChange, onChapterPageChange
                     <input type="number" min="0" className="w-full p-1 border rounded text-sm" value={data.refConfig.digitalWorks} onChange={e => updateRefConfig('digitalWorks', parseInt(e.target.value)||0)} />
                 </div>
                 <div>
-                    <label className="block text-xs text-slate-500">Prosiding Konferensi</label>
+                    <label className="block text-xs text-slate-500">Artikel/Prosiding Konferensi</label>
                     <input type="number" min="0" className="w-full p-1 border rounded text-sm" value={data.refConfig.proceedings} onChange={e => updateRefConfig('proceedings', parseInt(e.target.value)||0)} />
                 </div>
                 <div>
-                    <label className="block text-xs text-slate-500">Laporan Lembaga/Gov</label>
+                    <label className="block text-xs text-slate-500">Laporan Penelitian Gov</label>
                     <input type="number" min="0" className="w-full p-1 border rounded text-sm" value={data.refConfig.reports} onChange={e => updateRefConfig('reports', parseInt(e.target.value)||0)} />
                 </div>
                 <div>
-                    <label className="block text-xs text-slate-500">Website Resmi</label>
+                    <label className="block text-xs text-slate-500">Website</label>
                     <input type="number" min="0" className="w-full p-1 border rounded text-sm" value={data.refConfig.websites} onChange={e => updateRefConfig('websites', parseInt(e.target.value)||0)} />
                 </div>
             </div>

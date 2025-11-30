@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { GeneratedContent, DraftData } from '../types';
+import { GeneratedContent, DraftData, Language } from '../types';
 import { FileDown, BookMarked, AlignLeft, ScrollText, Layers, FileText } from 'lucide-react';
 import { 
   downloadFullDOC, 
@@ -28,6 +28,9 @@ export const DraftPreview: React.FC<Props> = ({ content, data }) => {
     );
   }
 
+  const isArab = data.language === Language.ARAB;
+  const dir = isArab ? 'rtl' : 'ltr';
+
   // Safe helper to render HTML content (allows tables) or fallback to text
   const renderContent = (htmlContent: string) => {
     let processed = htmlContent;
@@ -50,7 +53,7 @@ export const DraftPreview: React.FC<Props> = ({ content, data }) => {
         <div className="flex justify-between items-center">
           <h3 className="font-bold text-slate-700 flex items-center gap-2">
             <AlignLeft className="w-5 h-5 text-blue-600" />
-            Preview & Download
+            Preview & Download {isArab && '(RTL Mode)'}
           </h3>
           <div className="flex gap-2">
             <button
@@ -104,14 +107,17 @@ export const DraftPreview: React.FC<Props> = ({ content, data }) => {
 
       {/* Document Viewer */}
       <div className="flex-1 overflow-y-auto p-8 document-font bg-slate-50">
-        <div className="max-w-[21cm] mx-auto bg-white shadow-md min-h-[29.7cm] p-[2.54cm] text-justify leading-relaxed">
+        <div 
+            dir={dir}
+            className="max-w-[21cm] mx-auto bg-white shadow-md min-h-[29.7cm] p-[2.54cm] text-justify leading-relaxed"
+        >
           
           {/* Cover Preview */}
           <div className="text-center mb-12">
             <h1 className="font-bold text-lg uppercase mb-4">{data.title}</h1>
-            <p className="mb-8">PROPOSAL PENELITIAN</p>
+            <p className="mb-8">{data.researchLevel === 'Skripsi (S1 - Undergraduate)' ? 'PROPOSAL SKRIPSI' : data.researchLevel === 'Tesis (S2 - Masters)' ? 'PROPOSAL TESIS' : 'PROPOSAL DISERTASI'}</p>
             <div className="my-12">
-                <p className="font-bold">Oleh:</p>
+                <p className="font-bold">{isArab ? 'إعداد:' : 'Oleh:'}</p>
                 <p className="font-bold">{data.studentName}</p>
             </div>
             <div className="mt-12 uppercase font-bold">
@@ -126,27 +132,27 @@ export const DraftPreview: React.FC<Props> = ({ content, data }) => {
           {/* Content Preview Snippets */}
           <div className="space-y-8">
             <section>
-                <h2 className="text-center font-bold text-md mb-4">ABSTRAK</h2>
+                <h2 className="text-center font-bold text-md mb-4">{isArab ? 'الملخص' : 'ABSTRAK'}</h2>
                 <p className="text-sm text-slate-600 whitespace-pre-wrap">{content.abstract}</p>
             </section>
 
              <section>
-                <h2 className="text-center font-bold text-md mb-4">BAB I: PENDAHULUAN</h2>
+                <h2 className="text-center font-bold text-md mb-4">{isArab ? 'الفصل الأول: المقدمة' : 'BAB I: PENDAHULUAN'}</h2>
                 {renderContent(content.chapter1)}
             </section>
             
             <section>
-                <h2 className="text-center font-bold text-md mb-4">BAB II: TINJAUAN PUSTAKA</h2>
+                <h2 className="text-center font-bold text-md mb-4">{isArab ? 'الفصل الثاني: الإطار النظري' : 'BAB II: TINJAUAN PUSTAKA'}</h2>
                 {renderContent(content.chapter2)}
             </section>
             
             <section>
-                <h2 className="text-center font-bold text-md mb-4">BAB IV: HASIL & PEMBAHASAN</h2>
+                <h2 className="text-center font-bold text-md mb-4">{isArab ? 'الفصل الرابع: النتائج والمناقشة' : 'BAB IV: HASIL & PEMBAHASAN'}</h2>
                 {renderContent(content.chapter4)}
             </section>
 
              <section>
-                <h2 className="text-center font-bold text-md mb-4">DAFTAR PUSTAKA ({data.citationStyle})</h2>
+                <h2 className="text-center font-bold text-md mb-4">{isArab ? 'المراجع' : 'DAFTAR PUSTAKA'} ({data.citationStyle})</h2>
                 <ul className="list-none space-y-3 text-sm">
                     {content.references.map((ref, idx) => (
                         <li key={idx} className="pl-8 -indent-8"
@@ -157,7 +163,7 @@ export const DraftPreview: React.FC<Props> = ({ content, data }) => {
             </section>
 
             <section>
-                <h2 className="text-center font-bold text-md mb-4">LAMPIRAN: KISI-KISI & TES</h2>
+                <h2 className="text-center font-bold text-md mb-4">{isArab ? 'الملاحق' : 'LAMPIRAN: KISI-KISI & TES'}</h2>
                 <div className="p-4 bg-slate-50 rounded border border-slate-200 mb-4">
                     <h4 className="font-bold mb-2">Kisi-Kisi Instrumen</h4>
                     {renderContent(content.instrumentGrid)}
@@ -173,7 +179,7 @@ export const DraftPreview: React.FC<Props> = ({ content, data }) => {
             </section>
 
             <section>
-                <h2 className="text-center font-bold text-md mb-4">LAMPIRAN: HITUNGAN STATISTIK</h2>
+                <h2 className="text-center font-bold text-md mb-4">{isArab ? 'البيانات الإحصائية' : 'LAMPIRAN: HITUNGAN STATISTIK'}</h2>
                 <div className="p-4 bg-slate-50 rounded border border-slate-200">
                     {renderContent(content.calculations)}
                 </div>

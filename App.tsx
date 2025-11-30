@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { DraftForm } from './components/DraftForm';
 import { DraftPreview } from './components/DraftPreview';
-import { DraftData, Faculty, GeneratedContent, CitationStyle, WritingStyle, ResearchType, CitationFormat } from './types';
+import { DraftData, Faculty, GeneratedContent, CitationStyle, WritingStyle, ResearchType, CitationFormat, ResearchLevel, Language } from './types';
 import { generateResearchDraft } from './services/geminiService';
 import { GraduationCap } from 'lucide-react';
 
@@ -14,6 +14,11 @@ const App: React.FC = () => {
     faculty: Faculty.EKONOMI,
     studentName: '',
     university: '',
+    
+    // Default Values for New Fields
+    researchLevel: ResearchLevel.SKRIPSI,
+    language: Language.INDONESIA,
+
     chapterPages: {
       c1: 10,
       c2: 20,
