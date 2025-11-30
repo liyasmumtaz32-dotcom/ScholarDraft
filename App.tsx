@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { DraftForm } from './components/DraftForm';
 import { DraftPreview } from './components/DraftPreview';
-import { DraftData, Faculty, GeneratedContent, CitationStyle, WritingStyle, ResearchType, CitationFormat, ResearchLevel, Language } from './types';
+import { DraftData, Faculty, GeneratedContent, CitationStyle, WritingStyle, ResearchType, CitationFormat, ResearchLevel, Language, RESEARCH_STANDARDS } from './types';
 import { generateResearchDraft } from './services/geminiService';
 import { GraduationCap } from 'lucide-react';
 
@@ -19,22 +19,23 @@ const App: React.FC = () => {
     researchLevel: ResearchLevel.SKRIPSI,
     language: Language.INDONESIA,
 
+    // Initial Defaults (Will be updated by Research Level logic)
     chapterPages: {
       c1: 10,
       c2: 20,
       c3: 10,
-      c4: 20,
+      c4: 15,
       c5: 5
     },
     // New Reference Config Defaults
     refConfig: {
-      journals: 5,
-      repository: 3,
-      digitalWorks: 2,
+      journals: 8,
+      repository: 4,
+      digitalWorks: 1,
       proceedings: 2,
       reports: 1,
       websites: 2,
-      books: 3
+      books: 4
     },
     refYearStart: currentYear - 5, // Default last 5 years
     refYearEnd: currentYear,
@@ -63,9 +64,41 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper to handle nested object updates
+  // Helper to handle nested object updates and Logic injection
   const handleInputChange = (field: keyof DraftData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Logic: Auto-adjust pages and refs when Research Level changes
+    if (field === 'researchLevel') {
+      const newLevel = value as ResearchLevel;
+      let newPages = { ...formData.chapterPages };
+      let newRefs = { ...formData.refConfig };
+
+      if (newLevel === ResearchLevel.SKRIPSI) {
+        // Target ~60 Pages
+        newPages = { c1: 10, c2: 20, c3: 10, c4: 15, c5: 5 };
+        // Target ~22 Refs (Min 20)
+        newRefs = { ...newRefs, journals: 8, books: 5, repository: 4, digitalWorks: 1, proceedings: 2, reports: 1, websites: 1 };
+      } else if (newLevel === ResearchLevel.TESIS) {
+        // Target ~100 Pages
+        newPages = { c1: 15, c2: 35, c3: 15, c4: 25, c5: 10 };
+        // Target ~45 Refs (Min 40)
+        newRefs = { ...newRefs, journals: 15, books: 10, repository: 8, digitalWorks: 4, proceedings: 4, reports: 2, websites: 2 };
+      } else if (newLevel === ResearchLevel.DISERTASI) {
+        // Target ~200 Pages
+        newPages = { c1: 30, c2: 70, c3: 30, c4: 50, c5: 20 };
+        // Target ~70 Refs (Min 60)
+        newRefs = { ...newRefs, journals: 25, books: 20, repository: 10, digitalWorks: 5, proceedings: 5, reports: 3, websites: 2 };
+      }
+
+      setFormData(prev => ({ 
+        ...prev, 
+        [field]: value,
+        chapterPages: newPages,
+        refConfig: newRefs
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleChapterPageChange = (key: string, value: number) => {

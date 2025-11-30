@@ -43,6 +43,12 @@ export enum ResearchLevel {
   DISERTASI = 'Disertasi (S3 - PhD)'
 }
 
+export const RESEARCH_STANDARDS = {
+  [ResearchLevel.SKRIPSI]: { minPages: 60, minRefs: 20 },
+  [ResearchLevel.TESIS]: { minPages: 100, minRefs: 40 },
+  [ResearchLevel.DISERTASI]: { minPages: 200, minRefs: 60 },
+};
+
 export enum Language {
   INDONESIA = 'Bahasa Indonesia',
   INGGRIS = 'English',
